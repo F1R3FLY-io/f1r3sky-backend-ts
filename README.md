@@ -53,6 +53,9 @@ make test
 
 # run a local PDS and AppView with fake test accounts and data
 # (this requires a global installation of `jq` and `docker`)
+ENABLE_PDS=1 make run-dev-env
+
+# run AppView without PDS
 make run-dev-env
 
 # show all other commands

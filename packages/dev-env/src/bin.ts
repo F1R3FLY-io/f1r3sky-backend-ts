@@ -35,7 +35,14 @@ const run = async () => {
     introspect: { port: 2581 },
   })
   mockMailer(network.pds)
-  await generateMockSetup(network)
+
+  if (process.env.ENABLE_PDS && process.env.ENABLE_PDS === '1') {
+    await generateMockSetup(network)
+    console.log('PDS is enabled')
+  } else {
+    await network.pds.close()
+    console.log('PDS is disabled')
+  }
 
   if (network.introspect) {
     console.log(
@@ -51,6 +58,7 @@ const run = async () => {
   console.log(`🗼 Ozone server started http://localhost:${network.ozone.port}`)
   console.log(`🗼 Ozone service DID ${network.ozone.ctx.cfg.service.did}`)
   console.log(`🌅 Bsky Appview started http://localhost:${network.bsky.port}`)
+  console.log(`🌅 Bsky Appview DID ${network.bsky.ctx.cfg.serverDid}`)
   for (const fg of network.feedGens) {
     console.log(`🤖 Feed Generator started http://localhost:${fg.port}`)
   }

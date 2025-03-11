@@ -51,3 +51,9 @@ nvm-setup: ## Use NVM to install and activate node+pnpm
 	nvm install 18
 	nvm use 18
 	corepack enable
+
+.PHONY: dockers
+dockers:
+	docker build -f services/bsky/Dockerfile -t ghcr.io/f1r3sky/bsky:latest .
+	docker build -f services/bsync/Dockerfile -t ghcr.io/f1r3sky/bsync:latest .
+	docker build -f services/ozone/Dockerfile -t ghcr.io/f1r3sky/ozone:latest .

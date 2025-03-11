@@ -134,6 +134,112 @@ export class TestNetwork extends TestNetworkNoAppView {
     return new TestNetwork(plc, pds, bsky, ozone, introspect)
   }
 
+  static async createSecond(
+    network: TestNetwork,
+    params: Partial<TestServerParams> = {},
+  ): Promise<TestNetwork> {
+    const redisHost = process.env.REDIS_HOST
+    const dbPostgresUrl = params.dbPostgresUrl || process.env.DB_POSTGRES_URL
+    assert(dbPostgresUrl, 'Missing postgres url for tests')
+    assert(redisHost, 'Missing redis host for tests')
+    const dbPostgresSchema =
+      params.dbPostgresSchema || process.env.DB_POSTGRES_SCHEMA
+
+    const bskyPort = params.bsky?.port ?? (await getPort())
+    const pdsPort = params.pds?.port ?? (await getPort())
+    const ozonePort = params.ozone?.port ?? (await getPort())
+
+    const thirdPartyPdsProps = {
+      didPlcUrl: network.plc.url,
+      ...params.pds,
+      inviteRequired: false,
+      port: await getPort(),
+    }
+    const thirdPartyPds = await TestPds.create(thirdPartyPdsProps)
+    const ozoneServiceProfile = new OzoneServiceProfile(thirdPartyPds)
+    const { did: ozoneDid, key: ozoneKey } =
+      await ozoneServiceProfile.createDidAndKey()
+
+    const bsky = await TestBsky.create({
+      port: bskyPort,
+      plcUrl: network.plc.url,
+      pdsPort,
+      repoProvider: `ws://localhost:${pdsPort}`,
+      dbPostgresSchema: `appview_${dbPostgresSchema}`,
+      dbPostgresUrl,
+      redisHost,
+      modServiceDid: ozoneDid,
+      labelsFromIssuerDids: [ozoneDid, EXAMPLE_LABELER],
+      ...params.bsky,
+    })
+
+    const modServiceUrl = `http://localhost:${ozonePort}`
+    const pdsProps = {
+      port: pdsPort,
+      didPlcUrl: network.plc.url,
+      bskyAppViewUrl: bsky.url,
+      bskyAppViewDid: bsky.ctx.cfg.serverDid,
+      modServiceUrl,
+      modServiceDid: ozoneDid,
+      ...params.pds,
+    }
+
+    const pds = await TestPds.create(pdsProps)
+
+    const ozone = await TestOzone.create({
+      port: ozonePort,
+      plcUrl: network.plc.url,
+      signingKey: ozoneKey,
+      serverDid: ozoneDid,
+      dbPostgresSchema: `ozone_${dbPostgresSchema || 'db'}`,
+      dbPostgresUrl,
+      appviewUrl: bsky.url,
+      appviewDid: bsky.ctx.cfg.serverDid,
+      appviewPushEvents: true,
+      pdsUrl: pds.url,
+      pdsDid: pds.ctx.cfg.service.did,
+      ...params.ozone,
+    })
+
+    let inviteCode: string | undefined
+    if (pdsProps.inviteRequired) {
+      const { data: invite } = await pds
+        .getClient()
+        .api.com.atproto.server.createInviteCode(
+          { useCount: 1 },
+          {
+            encoding: 'application/json',
+            headers: pds.adminAuthHeaders(),
+          },
+        )
+      inviteCode = invite.code
+    }
+    await ozoneServiceProfile.createServiceDetails(pds, modServiceUrl, {
+      inviteCode,
+    })
+
+    await ozone.addAdminDid(ozoneDid)
+
+    mockNetworkUtilities(pds, bsky)
+    mockNetworkUtilities(network.pds, bsky)
+    // await pds.processAll()
+    await bsky.sub.processAll()
+    await thirdPartyPds.close()
+
+    let introspect: IntrospectServer | undefined = undefined
+    if (params.introspect?.port) {
+      introspect = await IntrospectServer.start(
+        params.introspect.port,
+        network.plc,
+        pds,
+        bsky,
+        ozone,
+      )
+    }
+
+    return new TestNetwork(network.plc, pds, bsky, ozone, introspect)
+  }
+
   async processFullSubscription(timeout = 5000) {
     const sub = this.bsky.sub
     const start = Date.now()

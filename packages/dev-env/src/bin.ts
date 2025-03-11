@@ -36,7 +36,7 @@ const run = async () => {
   })
   mockMailer(network.pds)
 
-  if (process.env.ENABLE_PDS && process.env.ENABLE_PDS === '1') {
+  if (process.env.ENABLE_PDS === '1') {
     await generateMockSetup(network)
     console.log('PDS is enabled')
   } else {
@@ -61,6 +61,59 @@ const run = async () => {
   console.log(`🌅 Bsky Appview DID ${network.bsky.ctx.cfg.serverDid}`)
   for (const fg of network.feedGens) {
     console.log(`🤖 Feed Generator started http://localhost:${fg.port}`)
+  }
+
+  if (process.env.SECOND_NETWORK === '1') {
+    console.log(`--- SECOND NETWORK ---`)
+
+    const network2 = await TestNetwork.createSecond(network, {
+      pds: {
+        port: 2683,
+        hostname: 'localhost',
+        enableDidDocWithSession: true,
+      },
+      bsky: {
+        dbPostgresSchema: 'bsky_second',
+        port: 2684,
+        publicUrl: 'http://localhost:2684',
+      },
+      ozone: {
+        chatUrl: 'http://localhost:2590', // must run separate chat service
+        chatDid: 'did:example:chat',
+        dbMaterializedViewRefreshIntervalMs: 30_000,
+      },
+    })
+
+    if (process.env.ENABLE_PDS === '1') {
+      await generateMockSetup(network2)
+      console.log('PDS is enabled')
+    } else {
+      await network2.pds.close()
+      console.log('PDS is disabled')
+    }
+
+    if (network2.introspect) {
+      console.log(
+        `🔍 Dev-env introspection server started http://localhost:${network2.introspect.port}`,
+      )
+    }
+    console.log(
+      `👤 DID Placeholder server started http://localhost:${network2.plc.port}`,
+    )
+    console.log(
+      `🌞 Personal Data server started http://localhost:${network2.pds.port}`,
+    )
+    console.log(
+      `🗼 Ozone server started http://localhost:${network2.ozone.port}`,
+    )
+    console.log(`🗼 Ozone service DID ${network2.ozone.ctx.cfg.service.did}`)
+    console.log(
+      `🌅 Bsky Appview started http://localhost:${network2.bsky.port}`,
+    )
+    console.log(`🌅 Bsky Appview DID ${network2.bsky.ctx.cfg.serverDid}`)
+    for (const fg of network2.feedGens) {
+      console.log(`🤖 Feed Generator started http://localhost:${fg.port}`)
+    }
   }
 }
 

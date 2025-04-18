@@ -1,0 +1,22 @@
+FROM node:20.11-alpine AS build
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY ./package.json ./
+RUN corepack prepare --activate
+
+# Move files into the image and install
+COPY ./*.* ./
+# NOTE bsky's transitive dependencies go here: if that changes, this needs to be updated.
+COPY ./tsconfig ./tsconfig
+COPY ./packages ./packages
+
+# install all deps
+RUN pnpm install --frozen-lockfile > /dev/null
+# build all packages with external node_modules
+RUN pnpm build > /dev/null
+
+WORKDIR /app/packages/dev-env
+CMD ["node", "dist/bin.js"]

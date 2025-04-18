@@ -59,7 +59,7 @@ export class TestNetwork extends TestNetworkNoAppView {
       port: bskyPort,
       plcUrl: plc.url,
       pdsPort,
-      repoProvider: `ws://localhost:${pdsPort}`,
+      repoProvider: `ws://${params.pds?.alternativeHost ?? 'localhost'}:${pdsPort}`,
       dbPostgresSchema: `appview_${dbPostgresSchema}`,
       dbPostgresUrl,
       redisHost,
@@ -96,22 +96,22 @@ export class TestNetwork extends TestNetworkNoAppView {
       ...params.ozone,
     })
 
-    let inviteCode: string | undefined
-    if (pdsProps.inviteRequired) {
-      const { data: invite } = await pds
-        .getClient()
-        .api.com.atproto.server.createInviteCode(
-          { useCount: 1 },
-          {
-            encoding: 'application/json',
-            headers: pds.adminAuthHeaders(),
-          },
-        )
-      inviteCode = invite.code
-    }
-    await ozoneServiceProfile.createServiceDetails(pds, modServiceUrl, {
-      inviteCode,
-    })
+    // let inviteCode: string | undefined
+    // if (pdsProps.inviteRequired) {
+    //   const { data: invite } = await pds
+    //     .getClient()
+    //     .api.com.atproto.server.createInviteCode(
+    //       { useCount: 1 },
+    //       {
+    //         encoding: 'application/json',
+    //         headers: pds.adminAuthHeaders(),
+    //       },
+    //     )
+    //   inviteCode = invite.code
+    // }
+    // await ozoneServiceProfile.createServiceDetails(pds, modServiceUrl, {
+    //   inviteCode,
+    // })
 
     await ozone.addAdminDid(ozoneDid)
 
@@ -164,7 +164,7 @@ export class TestNetwork extends TestNetworkNoAppView {
       port: bskyPort,
       plcUrl: network.plc.url,
       pdsPort,
-      repoProvider: `ws://localhost:${pdsPort}`,
+      repoProvider: `ws://${params.pds?.alternativeHost ?? 'localhost'}:${pdsPort}`,
       dbPostgresSchema: `appview_${dbPostgresSchema}`,
       dbPostgresUrl,
       redisHost,
@@ -201,22 +201,22 @@ export class TestNetwork extends TestNetworkNoAppView {
       ...params.ozone,
     })
 
-    let inviteCode: string | undefined
-    if (pdsProps.inviteRequired) {
-      const { data: invite } = await pds
-        .getClient()
-        .api.com.atproto.server.createInviteCode(
-          { useCount: 1 },
-          {
-            encoding: 'application/json',
-            headers: pds.adminAuthHeaders(),
-          },
-        )
-      inviteCode = invite.code
-    }
-    await ozoneServiceProfile.createServiceDetails(pds, modServiceUrl, {
-      inviteCode,
-    })
+    // let inviteCode: string | undefined
+    // if (pdsProps.inviteRequired) {
+    //   const { data: invite } = await pds
+    //     .getClient()
+    //     .api.com.atproto.server.createInviteCode(
+    //       { useCount: 1 },
+    //       {
+    //         encoding: 'application/json',
+    //         headers: pds.adminAuthHeaders(),
+    //       },
+    //     )
+    //   inviteCode = invite.code
+    // }
+    // await ozoneServiceProfile.createServiceDetails(pds, modServiceUrl, {
+    //   inviteCode,
+    // })
 
     await ozone.addAdminDid(ozoneDid)
 

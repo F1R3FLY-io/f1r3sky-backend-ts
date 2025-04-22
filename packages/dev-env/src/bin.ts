@@ -19,6 +19,7 @@ const run = async () => {
       port: 2583,
       hostname: 'localhost',
       enableDidDocWithSession: true,
+      alternativeHost: process.env.ALTERNATIVE_PDS_HOST,
     },
     bsky: {
       dbPostgresSchema: 'bsky',
@@ -58,7 +59,7 @@ const run = async () => {
   console.log(`🗼 Ozone server started http://localhost:${network.ozone.port}`)
   console.log(`🗼 Ozone service DID ${network.ozone.ctx.cfg.service.did}`)
   console.log(`🌅 Bsky Appview started http://localhost:${network.bsky.port}`)
-  console.log(`🌅 Bsky Appview DID ${network.bsky.ctx.cfg.serverDid}`)
+  console.log(`🌅 Bsky Appview#1 DID ${network.bsky.ctx.cfg.serverDid}`)
   for (const fg of network.feedGens) {
     console.log(`🤖 Feed Generator started http://localhost:${fg.port}`)
   }
@@ -71,6 +72,7 @@ const run = async () => {
         port: 2683,
         hostname: 'localhost',
         enableDidDocWithSession: true,
+        alternativeHost: process.env.ALTERNATIVE_PDS_HOST2,
       },
       bsky: {
         dbPostgresSchema: 'bsky_second',
@@ -110,7 +112,7 @@ const run = async () => {
     console.log(
       `🌅 Bsky Appview started http://localhost:${network2.bsky.port}`,
     )
-    console.log(`🌅 Bsky Appview DID ${network2.bsky.ctx.cfg.serverDid}`)
+    console.log(`🌅 Bsky Appview#2 DID ${network2.bsky.ctx.cfg.serverDid}`)
     for (const fg of network2.feedGens) {
       console.log(`🤖 Feed Generator started http://localhost:${fg.port}`)
     }

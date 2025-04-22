@@ -16,6 +16,7 @@ export type PlcConfig = {
 export type PdsConfig = Partial<pds.ServerEnvironment> & {
   didPlcUrl: string
   migration?: string
+  alternativeHost?: string
 }
 
 export type BskyConfig = Partial<bsky.ServerConfig> & {

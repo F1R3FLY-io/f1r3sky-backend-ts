@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:20.11-alpine AS build
 
 RUN corepack enable
 
@@ -34,10 +34,10 @@ RUN rm -rf node_modules
 # install only prod deps, hoisted to root node_modules dir
 RUN pnpm install --prod --shamefully-hoist --frozen-lockfile --prefer-offline > /dev/null
 
-WORKDIR services/ozone
+WORKDIR /app/services/ozone
 
 # Uses assets from build stage to reduce build size
-FROM node:18-alpine
+FROM node:20.11-alpine
 
 RUN apk add --update dumb-init
 
